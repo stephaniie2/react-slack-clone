@@ -45,13 +45,13 @@ class MessageForm extends React.Component {
   };
 
   sendMessage = () => {
-    const { messagesRef } = this.props;
+    const { getMessagesRef } = this.props;
     const { message, channel } = this.state;
 
     if (message) {
       // send messages
       this.setState({ loading: true });
-      messagesRef
+      getMessagesRef()
         .child(channel.id)
         .push()
         .set(this.createMessage())
@@ -72,10 +72,18 @@ class MessageForm extends React.Component {
     }
   };
 
+  getPath = () => {
+    if (this.props.isPrivateChannel) {
+      return `chat/private-${this.state.channel.id}`;
+    } else {
+      return `chat/public`;
+    }
+  };
+
   uploadFile = (file, metadata) => {
     const pathToUpload = this.state.channel.id;
-    const ref = this.props.messagesRef;
-    const filePath = `chat/public/${uuidv4()}.jpg`;
+    const ref = this.props.getMessagesRef();
+    const filePath = `${this.getPath()}${uuidv4()}.jpg`;
 
     this.setState(
       {
@@ -89,7 +97,7 @@ class MessageForm extends React.Component {
             const percentUploaded = Math.round(
               (snap.bytesTransferred / snap.totalBytes) * 100
             );
-            this.props.isProgressBarVisible(percentUploaded);
+            //this.props.isProgressBarVisible(percentUploaded);
             this.setState({ percentUploaded });
           },
           err => {
@@ -174,6 +182,7 @@ class MessageForm extends React.Component {
           />
           <Button
             color="teal"
+            disabled={uploadState === "uploading"}
             onClick={this.openModal}
             content="Upload Media"
             labelPosition="right"
